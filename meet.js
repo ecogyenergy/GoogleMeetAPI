@@ -1,51 +1,56 @@
 const EventEmitter = require('events');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
+
+const stealthPlugin = StealthPlugin()
+stealthPlugin.enabledEvasions.delete('iframe.contentWindow');
+stealthPlugin.enabledEvasions.delete('navigator.plugins');
+puppeteer.use(stealthPlugin);
 
 const authenticate = require('./core/authenticate');
 const meeting = require('./core/meeting');
 const message = require('./core/message');
-const member = require('./core/member');
 const audio = require('./core/audio'); // Not working
 
 
 class Meet extends EventEmitter {
 
-    constructor() {
-        super();
-        console.log("Client created!")
+  constructor() {
+    super();
+    console.log("Client created!")
 
-        // Listeners (for use in login function)
-        this.message = message;
-        this.member = member;
-        this.audio = audio;
+    // Listeners (for use in login function)
+    this.message = message;
+    this.audio = audio;
 
-        this.meetingLink = undefined;
-        this.email = undefined
+    this.meetingLink = undefined;
+    this.email = undefined
 
-        this.puppeteer = puppeteer;
-        this.browser = undefined;
-        this.page = undefined;
-        this.ctx = undefined;
+    this.puppeteer = puppeteer;
+    this.browser = undefined;
+    this.page = undefined;
+    this.ctx = undefined;
 
-        this.isMicEnabled = true;
-        this.isVideoEnabled = true;
-        this.isChatEnabled = undefined;
+    this.isMicEnabled = true;
+    this.isVideoEnabled = true;
+    this.isChatEnabled = undefined;
 
-        this.recentMessage = undefined;
-        this.members = undefined;
-    };
+    this.transcript = [];
+    this.fragments = [];
+    this.fragmentStorage = new Set();
+  };
 
-    login = authenticate.auth;
+  login = authenticate.auth;
 
-    toggleMic = meeting.toggleMic;
-    toggleVideo = meeting.toggleVideo;
-    toggleChat = meeting.toggleChat;
-    toggleMemberList = meeting.toggleMemberList;
-    chatEnabled = meeting.chatEnabled;
-    sendMessage = meeting.sendMessage;
-    screenshot = meeting.screenshot;
+  logout = authenticate.leave;
+
+  toggleMic = meeting.toggleMic;
+  enableCaptions = meeting.enableCaptions;
+  toggleVideo = meeting.toggleVideo;
+  toggleChat = meeting.toggleChat;
+  chatEnabled = meeting.chatEnabled;
+  sendMessage = meeting.sendMessage;
+  screenshot = meeting.screenshot;
 
 }
 
